@@ -602,6 +602,17 @@
         -webkit-background-clip: text;
       }
 
+      .lesson-text-colorful {
+        background: linear-gradient(
+          90deg,
+          #ff4d6d,
+          #ffd166,
+          #06d6a0,
+          #4cc9f0,
+          #8a5cf6
+        );
+      }
+
       .lesson-text-moving {
         animation: shimmer var(--speed) infinite cubic-bezier(0.45, 0, 0.2, 1);
       }
@@ -1180,7 +1191,7 @@
                   <div class="lesson-card">
                     <h3 data-i18n="lessonTwoTitle">2. Clip the background into text</h3>
                     <div class="lesson-visual">
-                      <div class="lesson-text" aria-hidden="true">CSS is awesome, right?</div>
+                      <div class="lesson-text lesson-text-colorful" aria-hidden="true">CSS is awesome, right?</div>
                     </div>
                     <p data-i18n="lessonTwoBody">
                       Use transparent text plus background-clip:text. The text becomes a
@@ -1197,11 +1208,14 @@
                       <pre class="lesson-code" data-lang="css"><code>.shimmer {
   /* NEW in Step 2: hide the original text fill. */
   color: transparent;
+  /* NEW in Step 2: use a colorful gradient behind the transparent text. */
   background: linear-gradient(
     90deg,
-    #8a8a8a,
-    #ffffff,
-    #8a8a8a
+    #ff4d6d,
+    #ffd166,
+    #06d6a0,
+    #4cc9f0,
+    #8a5cf6
   );
   /* NEW in Step 2: reveal the background through the glyphs. */
   background-clip: text;
