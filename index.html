@@ -16,13 +16,13 @@
     />
     <meta
       property="og:image"
-      content="https://de4965e.webp.li/blog-images/2026/07/45b2d0ade3633891136dea4849ec20e0.webp"
-      data-og-en="https://de4965e.webp.li/blog-images/2026/07/45b2d0ade3633891136dea4849ec20e0.webp"
-      data-og-zh="https://de4965e.webp.li/blog-images/2026/07/396efc63867d944dac249db7bcbdd1b4.webp"
+      content="https://de4965e.webp.li/blog-images/2026/07/434a5c2c10dc42d1b28ec38a4d101171.jpg"
+      data-og-en="https://de4965e.webp.li/blog-images/2026/07/434a5c2c10dc42d1b28ec38a4d101171.jpg"
+      data-og-zh="https://de4965e.webp.li/blog-images/2026/07/b0617d7b6b3c6d107c185bbb9ea61b8e.jpg"
     />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:type" content="image/webp" />
+    <meta property="og:image:type" content="image/jpeg" />
     <meta property="og:image:alt" content="Build a CSS Shimmer Text Effect" />
     <meta property="og:locale" content="en_US" />
     <meta property="og:locale:alternate" content="zh_CN" />
@@ -37,10 +37,11 @@
     />
     <meta
       name="twitter:image"
-      content="https://de4965e.webp.li/blog-images/2026/07/45b2d0ade3633891136dea4849ec20e0.webp"
-      data-og-en="https://de4965e.webp.li/blog-images/2026/07/45b2d0ade3633891136dea4849ec20e0.webp"
-      data-og-zh="https://de4965e.webp.li/blog-images/2026/07/396efc63867d944dac249db7bcbdd1b4.webp"
+      content="https://de4965e.webp.li/blog-images/2026/07/434a5c2c10dc42d1b28ec38a4d101171.jpg"
+      data-og-en="https://de4965e.webp.li/blog-images/2026/07/434a5c2c10dc42d1b28ec38a4d101171.jpg"
+      data-og-zh="https://de4965e.webp.li/blog-images/2026/07/b0617d7b6b3c6d107c185bbb9ea61b8e.jpg"
     />
+    <meta name="twitter:image:alt" content="Build a CSS Shimmer Text Effect" />
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/Swiper/14.0.5/swiper-bundle.css"
@@ -1481,6 +1482,7 @@
       const backgroundSampleStrip = document.querySelector(".background-sample-strip");
       const ogImage = document.querySelector('meta[property="og:image"]');
       const twitterImage = document.querySelector('meta[name="twitter:image"]');
+      const twitterImageAlt = document.querySelector('meta[name="twitter:image:alt"]');
       const ogImageAlt = document.querySelector('meta[property="og:image:alt"]');
       const ogTitle = document.querySelector('meta[property="og:title"]');
       const ogDescription = document.querySelector('meta[property="og:description"]');
@@ -1791,6 +1793,7 @@
         ogImage.content = ogImage.dataset[`og${language === "zh" ? "Zh" : "En"}`];
         twitterImage.content = twitterImage.dataset[`og${language === "zh" ? "Zh" : "En"}`];
         ogImageAlt.content = pageCopy.title;
+        twitterImageAlt.content = pageCopy.title;
         document.querySelector(".demo-panel").setAttribute("aria-label", copy.toolbar);
         document.querySelector(".controls").setAttribute("aria-label", copy.controls);
         restart.setAttribute("aria-label", copy.restart);
