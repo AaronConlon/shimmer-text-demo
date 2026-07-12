@@ -43,6 +43,11 @@
     />
     <meta name="twitter:image:alt" content="Build a CSS Shimmer Text Effect" />
     <link
+      rel="icon"
+      type="image/jpeg"
+      href="https://pbs.twimg.com/profile_images/2069979979467890689/H3eMkyep_400x400.jpg"
+    />
+    <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/Swiper/14.0.5/swiper-bundle.css"
     />
@@ -401,6 +406,11 @@
         width: 1.25rem;
         height: 1.25rem;
         stroke: currentColor;
+      }
+
+      .icon-button.github-link svg {
+        fill: currentColor;
+        stroke: none;
       }
 
       .pause-icon {
@@ -1105,6 +1115,18 @@
       </button>
 
       <a
+        class="icon-button github-link has-tooltip"
+        href="https://github.com/AaronConlon/shimmer-text-demo"
+        target="_blank"
+        rel="noreferrer noopener"
+        aria-label="Open GitHub repository"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.38 7.86 10.91.58.1.79-.25.79-.56v-2.02c-3.2.7-3.87-1.38-3.87-1.38-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.76 2.7 1.25 3.36.96.1-.75.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.68 0-1.25.45-2.28 1.19-3.08-.12-.29-.52-1.46.11-3.04 0 0 .97-.31 3.17 1.18a11.1 11.1 0 0 1 5.78 0c2.2-1.49 3.16-1.18 3.16-1.18.63 1.58.23 2.75.11 3.04.74.8 1.18 1.83 1.18 3.08 0 4.42-2.69 5.38-5.25 5.67.41.35.78 1.05.78 2.12v3.14c0 .31.21.67.79.56A11.51 11.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z" />
+        </svg>
+      </a>
+
+      <a
         class="profile-link has-tooltip"
         href="https://x.com/intent/follow?screen_name=aaronconlondev"
         target="_blank"
@@ -1425,6 +1447,7 @@
           tooltipSlideToDemo: "Open the interactive demo controls.",
           tooltipSlideToTutorial: "Open the step-by-step tutorial.",
           tooltipLanguage: "Switch the interface language.",
+          tooltipGithub: "Open the source repository in a new tab.",
           tooltipProfile: "Open Aaron's X follow page in a new tab.",
           copy: "Copy",
           copied: "Copied",
@@ -1476,6 +1499,7 @@
           tooltipSlideToDemo: "打开可交互 Demo 控制区。",
           tooltipSlideToTutorial: "打开一步步教程。",
           tooltipLanguage: "切换界面语言。",
+          tooltipGithub: "在新标签打开源码仓库。",
           tooltipProfile: "在新标签打开 Aaron 的 X 关注页。",
           copy: "复制",
           copied: "已复制",
@@ -1530,6 +1554,7 @@
           ? copy.tooltipSlideToDemo
           : copy.tooltipSlideToTutorial;
         languageToggle.dataset.tooltip = copy.tooltipLanguage;
+        document.querySelector(".github-link").dataset.tooltip = copy.tooltipGithub;
         document.querySelector(".profile-link").dataset.tooltip = copy.tooltipProfile;
       };
       const tooltipElements = document.querySelectorAll(".has-tooltip");
