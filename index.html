@@ -1,0 +1,2007 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Build a CSS Shimmer Text Effect</title>
+    <meta
+      name="description"
+      content="A visual guide to gradient text, clipping, and motion."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Build a CSS Shimmer Text Effect" />
+    <meta
+      property="og:description"
+      content="A visual guide to gradient text, clipping, and motion."
+    />
+    <meta
+      property="og:image"
+      content="https://de4965e.webp.li/blog-images/2026/07/45b2d0ade3633891136dea4849ec20e0.webp"
+      data-og-en="https://de4965e.webp.li/blog-images/2026/07/45b2d0ade3633891136dea4849ec20e0.webp"
+      data-og-zh="https://de4965e.webp.li/blog-images/2026/07/396efc63867d944dac249db7bcbdd1b4.webp"
+    />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:type" content="image/webp" />
+    <meta property="og:image:alt" content="Build a CSS Shimmer Text Effect" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:locale:alternate" content="zh_CN" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="Build a CSS Shimmer Text Effect"
+    />
+    <meta
+      name="twitter:description"
+      content="A visual guide to gradient text, clipping, and motion."
+    />
+    <meta
+      name="twitter:image"
+      content="https://de4965e.webp.li/blog-images/2026/07/45b2d0ade3633891136dea4849ec20e0.webp"
+      data-og-en="https://de4965e.webp.li/blog-images/2026/07/45b2d0ade3633891136dea4849ec20e0.webp"
+      data-og-zh="https://de4965e.webp.li/blog-images/2026/07/396efc63867d944dac249db7bcbdd1b4.webp"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/Swiper/14.0.5/swiper-bundle.css"
+    />
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      :root {
+        --screen-max: 1200px;
+        --screen: min(100vw, var(--screen-max));
+        --speed: 2.4s;
+        --shine-width: 2ch;
+        --shine-width-px: 120px;
+        --angle: 45deg;
+        --start-position: 72%;
+        --end-position: 28%;
+        --travel-margin: 120px;
+        --demo-font-scale: 1;
+        --shimmer-gradient: linear-gradient(
+          var(--angle),
+          #8a8a8a calc(50% - var(--shine-width-px)),
+          #ffffff 50%,
+          #8a8a8a calc(50% + var(--shine-width-px))
+        );
+      }
+
+      [data-colorful="true"] {
+        --shimmer-gradient: linear-gradient(
+          var(--angle),
+          #8a8a8a calc(50% - var(--shine-width-px)),
+          #a960ee calc(50% - (var(--shine-width-px) * 0.55)),
+          #ff333d,
+          #ffcb57 50%,
+          #90e0ff calc(50% + (var(--shine-width-px) * 0.55)),
+          #8a8a8a calc(50% + var(--shine-width-px))
+        );
+      }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+        background: #111;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      .screen-swiper {
+        width: 100%;
+        min-height: 100vh;
+        overflow: hidden;
+      }
+
+      .screen-swiper .swiper-wrapper {
+        display: flex;
+        width: 100%;
+      }
+
+      .swiper-slide {
+        flex: 0 0 100%;
+        min-height: 100vh;
+        padding:
+          clamp(5rem, calc(var(--screen) * 0.06), 6.5rem)
+          1rem
+          clamp(8rem, calc(var(--screen) * 0.12), 10rem);
+        display: grid;
+        place-items: center;
+      }
+
+      .demo {
+        display: grid;
+        width: min(calc(var(--screen) - clamp(3rem, calc(var(--screen) * 0.1), 7.5rem)), 760px);
+        justify-items: center;
+        gap: clamp(1.25rem, calc(var(--screen) * 0.026), 2rem);
+      }
+
+      .stage {
+        isolation: isolate;
+        position: relative;
+        padding: 1rem 1.25rem;
+        border: 1px dashed rgb(91 192 255 / 0.72);
+        border-radius: 8px;
+      }
+
+      .stage::before,
+      .stage::after {
+        position: absolute;
+        top: -1.55rem;
+        font-size: 0.75rem;
+        color: rgb(91 192 255 / 0.9);
+      }
+
+      .stage::before {
+        left: 0;
+        content: attr(data-before);
+      }
+
+      .stage::after {
+        right: 0;
+        content: attr(data-after);
+      }
+
+      .shimmer {
+        position: relative;
+        z-index: 1;
+        margin: 0;
+        padding: 0.12em 0.08em;
+        border: 1px solid rgb(255 255 255 / 0.28);
+        font-size: calc(clamp(2rem, calc(var(--screen) * 0.055), 4.25rem) * var(--demo-font-scale));
+        font-weight: 700;
+        color: transparent;
+        background: var(--shimmer-gradient);
+        background-size: 400% 100%;
+        background-position: 50% 0;
+        background-clip: text;
+        -webkit-background-clip: text;
+        animation: shimmer var(--speed) infinite cubic-bezier(0.45, 0, 0.2, 1);
+        animation-play-state: running;
+      }
+
+      .range-visual {
+        position: absolute;
+        z-index: 0;
+        top: 1rem;
+        bottom: 1rem;
+        left: calc(1.25rem - var(--travel-margin));
+        right: calc(1.25rem - var(--travel-margin));
+        border: 1px solid rgb(255 203 87 / 0.58);
+        border-radius: 8px;
+        background:
+          linear-gradient(
+            90deg,
+            rgb(255 203 87 / 0.18),
+            rgb(255 203 87 / 0.04) var(--travel-margin),
+            transparent var(--travel-margin),
+            transparent calc(100% - var(--travel-margin)),
+            rgb(255 203 87 / 0.04) calc(100% - var(--travel-margin)),
+            rgb(255 203 87 / 0.18)
+          );
+        pointer-events: none;
+      }
+
+      .range-visual::before,
+      .range-visual::after {
+        position: absolute;
+        bottom: -1.55rem;
+        font-size: 0.75rem;
+        color: rgb(255 203 87 / 0.9);
+      }
+
+      .range-visual::before {
+        left: 0;
+        content: attr(data-before);
+      }
+
+      .range-visual::after {
+        right: 0;
+        content: attr(data-after);
+      }
+
+      .demo-panel {
+        position: fixed;
+        top: 1rem;
+        left: 1rem;
+        z-index: 20;
+        width: auto;
+        display: grid;
+        gap: 0.75rem;
+        pointer-events: none;
+      }
+
+      .demo-actions {
+        display: flex;
+        gap: 0.5rem;
+        pointer-events: auto;
+      }
+
+      .top-actions {
+        position: fixed;
+        top: 1rem;
+        right: 1rem;
+        z-index: 10;
+        display: flex;
+        gap: 0.5rem;
+        align-items: start;
+      }
+
+      .icon-button.slide-toggle {
+        order: -1;
+        width: auto;
+        min-width: 0;
+        grid-template-columns: auto auto;
+        gap: 0.5rem;
+        padding: 0 0.85rem;
+      }
+
+      .slide-toggle-text {
+        display: inline-block;
+        font-size: 0.86rem;
+        line-height: 1;
+        white-space: nowrap;
+      }
+
+      .has-tooltip {
+        position: relative;
+        z-index: 1;
+      }
+
+      .has-tooltip:hover,
+      .has-tooltip:focus-visible {
+        z-index: 50;
+      }
+
+      .has-tooltip::after {
+        position: absolute;
+        z-index: 30;
+        top: calc(100% + 0.55rem);
+        left: 50%;
+        max-width: 16rem;
+        width: max-content;
+        padding: 0.48rem 0.62rem;
+        border: 1px solid rgb(255 255 255 / 0.14);
+        border-radius: 8px;
+        background: rgb(24 24 24 / 0.96);
+        box-shadow: 0 12px 32px rgb(0 0 0 / 0.32);
+        color: #f4f4f4;
+        content: attr(data-tooltip);
+        font-size: 0.78rem;
+        line-height: 1.35;
+        opacity: 0;
+        pointer-events: none;
+        transform: translate(calc(-50% + var(--tooltip-shift, 0px)), -0.2rem);
+        transition:
+          opacity 160ms ease,
+          transform 160ms ease;
+        white-space: normal;
+      }
+
+      .has-tooltip:hover::after,
+      .has-tooltip:focus-visible::after {
+        opacity: 1;
+        transform: translate(calc(-50% + var(--tooltip-shift, 0px)), 0);
+      }
+
+      .demo-actions .has-tooltip::after {
+        top: calc(100% + 0.55rem);
+        left: 50%;
+        transform: translate(calc(-50% + var(--tooltip-shift, 0px)), -0.2rem);
+      }
+
+      .demo-actions .has-tooltip:hover::after,
+      .demo-actions .has-tooltip:focus-visible::after {
+        transform: translate(calc(-50% + var(--tooltip-shift, 0px)), 0);
+      }
+
+      .visibility-menu {
+        position: relative;
+        pointer-events: auto;
+      }
+
+      .visibility-dropdown {
+        position: absolute;
+        top: calc(100% + 0.5rem);
+        left: 0;
+        display: grid;
+        gap: 0.75rem;
+        min-width: 230px;
+        padding: 0.9rem;
+        border: 1px solid rgb(255 255 255 / 0.14);
+        border-radius: 8px;
+        background: rgb(24 24 24 / 0.94);
+        box-shadow: 0 16px 48px rgb(0 0 0 / 0.32);
+        color: #f4f4f4;
+        backdrop-filter: blur(16px);
+      }
+
+      .visibility-dropdown[hidden] {
+        display: none;
+      }
+
+      .visibility-option {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        font-size: 0.86rem;
+        line-height: 1.2;
+      }
+
+      .visibility-option input {
+        width: 1rem;
+        height: 1rem;
+        accent-color: #fff;
+      }
+
+      .profile-link {
+        width: 2.75rem;
+        height: 2.75rem;
+        display: block;
+        overflow: hidden;
+        border: 1px solid rgb(255 255 255 / 0.14);
+        border-radius: 999px;
+        background: rgb(24 24 24 / 0.86);
+        backdrop-filter: blur(16px);
+      }
+
+      .profile-link:hover,
+      .profile-link:focus-visible {
+        border-color: rgb(255 255 255 / 0.36);
+      }
+
+      .profile-link img {
+        width: 100%;
+        height: 100%;
+        display: block;
+        object-fit: cover;
+      }
+
+      .icon-button {
+        width: 2.75rem;
+        height: 2.75rem;
+        min-width: 2.75rem;
+        min-height: 2.75rem;
+        display: grid;
+        place-items: center;
+        border: 1px solid rgb(255 255 255 / 0.14);
+        border-radius: 8px;
+        background: rgb(24 24 24 / 0.86);
+        color: #f4f4f4;
+        cursor: pointer;
+        backdrop-filter: blur(16px);
+        transition-property: background, border-color, transform, box-shadow;
+        transition-duration: 160ms;
+        transition-timing-function: ease;
+      }
+
+      .icon-button:hover,
+      .icon-button:focus-visible {
+        background: rgb(44 44 44 / 0.9);
+        border-color: rgb(255 255 255 / 0.3);
+        box-shadow: 0 8px 24px rgb(0 0 0 / 0.22);
+      }
+
+      .icon-button:active,
+      .lesson-nav-button:active {
+        transform: scale(0.96);
+      }
+
+      .icon-button svg {
+        width: 1.25rem;
+        height: 1.25rem;
+        stroke: currentColor;
+      }
+
+      .pause-icon {
+        display: block;
+      }
+
+      .play-icon {
+        display: none;
+      }
+
+      [data-paused="true"] .pause-icon {
+        display: none;
+      }
+
+      [data-paused="true"] .play-icon {
+        display: block;
+      }
+
+      .controls {
+        position: fixed;
+        z-index: 12;
+        right: 1rem;
+        bottom: 1rem;
+        left: 50%;
+        width: min(760px, calc(100vw - 2rem));
+        transform: translateX(-50%);
+        padding: clamp(0.75rem, calc(var(--screen) * 0.012), 1rem);
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: clamp(0.75rem, calc(var(--screen) * 0.012), 1rem);
+        border: 1px solid rgb(255 255 255 / 0.14);
+        border-radius: 8px;
+        background: rgb(24 24 24 / 0.86);
+        box-shadow: 0 16px 48px rgb(0 0 0 / 0.32);
+        color: #f4f4f4;
+        backdrop-filter: blur(16px);
+        pointer-events: auto;
+      }
+
+      .controls .checkbox-control {
+        align-self: end;
+        min-height: 2.25rem;
+        padding: 0 0.7rem;
+        border: 1px solid rgb(255 255 255 / 0.14);
+        border-radius: 6px;
+        background: rgb(255 255 255 / 0.04);
+      }
+
+      .background-sample {
+        width: min(calc(var(--screen) * 0.48), 460px);
+        padding: clamp(0.75rem, calc(var(--screen) * 0.012), 1rem);
+        border: 1px solid rgb(255 255 255 / 0.14);
+        border-radius: 8px;
+        background: rgb(24 24 24 / 0.86);
+        box-shadow: 0 16px 48px rgb(0 0 0 / 0.32);
+        color: #f4f4f4;
+        backdrop-filter: blur(16px);
+      }
+
+      .background-sample-title {
+        margin: 0 0 0.75rem;
+        color: #cfcfcf;
+        font-size: 0.86rem;
+        line-height: 1.2;
+      }
+
+      .background-sample-strip {
+        height: clamp(2.25rem, calc(var(--screen) * 0.04), 3rem);
+        border: 1px solid rgb(255 255 255 / 0.24);
+        border-radius: 8px;
+        background: var(--shimmer-gradient);
+        background-size: 400% 100%;
+        animation: shimmer var(--speed) infinite cubic-bezier(0.45, 0, 0.2, 1);
+        animation-play-state: running;
+      }
+
+      [data-paused="true"] .background-sample-strip {
+        animation-play-state: paused;
+      }
+
+      [data-show-visible-range="false"] .stage {
+        border-color: transparent;
+      }
+
+      [data-show-visible-range="false"] .shimmer {
+        border-color: transparent;
+      }
+
+      [data-show-visible-range="false"] .stage::before,
+      [data-show-visible-range="false"] .stage::after {
+        color: transparent;
+      }
+
+      [data-show-safe-range="false"] .range-visual {
+        display: none;
+      }
+
+      [data-show-background-sample="false"] .background-sample {
+        display: none;
+      }
+
+      [data-slide="tutorial"] .demo-panel {
+        display: none;
+      }
+
+      [data-slide="tutorial"] .controls {
+        display: none;
+      }
+
+      .tutorial {
+        width: min(calc(var(--screen) - 2rem), 980px);
+        display: grid;
+        gap: clamp(1rem, calc(var(--screen) * 0.018), 1.5rem);
+        color: #f4f4f4;
+      }
+
+      .tutorial-header {
+        display: grid;
+        gap: 0.4rem;
+      }
+
+      .tutorial-title {
+        margin: 0;
+        font-size: clamp(1.6rem, calc(var(--screen) * 0.034), 2.5rem);
+        line-height: 1.1;
+      }
+
+      .tutorial-subtitle {
+        max-width: 60ch;
+        margin: 0;
+        color: #cfcfcf;
+        font-size: 0.96rem;
+        line-height: 1.6;
+      }
+
+      .lesson-swiper {
+        width: 100%;
+        overflow: hidden;
+      }
+
+      .lesson-swiper .swiper-wrapper {
+        display: flex;
+        align-items: stretch;
+      }
+
+      .lesson-swiper .swiper-slide {
+        flex: 0 0 100%;
+        min-height: auto;
+        padding: 0;
+        display: grid;
+        place-items: center;
+      }
+
+      .lesson-card {
+        display: grid;
+        width: min(100%, 680px);
+        gap: 0.8rem;
+        padding: clamp(1rem, calc(var(--screen) * 0.018), 1.35rem);
+        border-radius: 8px;
+        background: rgb(24 24 24 / 0.72);
+        box-shadow: 0 16px 48px rgb(0 0 0 / 0.18);
+      }
+
+      .lesson-card h3 {
+        margin: 0;
+        font-size: 1rem;
+        line-height: 1.3;
+      }
+
+      .lesson-card p {
+        margin: 0;
+        color: #cfcfcf;
+        font-size: 0.95rem;
+        line-height: 1.65;
+      }
+
+      .lesson-visual {
+        min-height: 4.5rem;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        border-radius: 8px;
+        background: rgb(255 255 255 / 0.04);
+      }
+
+      .lesson-gradient {
+        width: 40%;
+        height: 2.5rem;
+        border-radius: 8px;
+        background: var(--shimmer-gradient);
+      }
+
+      .lesson-gradient-moving {
+        background-size: 400% 100%;
+        animation: shimmer var(--speed) infinite cubic-bezier(0.45, 0, 0.2, 1);
+      }
+
+      .lesson-text {
+        color: transparent;
+        font-size: clamp(1.4rem, calc(var(--screen) * 0.03), 2.2rem);
+        font-weight: 700;
+        background: var(--shimmer-gradient);
+        background-size: 400% 100%;
+        background-clip: text;
+        -webkit-background-clip: text;
+      }
+
+      .lesson-text-moving {
+        animation: shimmer var(--speed) infinite cubic-bezier(0.45, 0, 0.2, 1);
+      }
+
+      .lesson-range {
+        position: relative;
+        width: min(82%, 24rem);
+        height: 3.5rem;
+        border: 1px dashed rgb(91 192 255 / 0.72);
+        border-radius: 8px;
+      }
+
+      .lesson-range::before {
+        position: absolute;
+        inset: 0 -2.4rem;
+        content: "";
+        border: 1px solid rgb(255 203 87 / 0.58);
+        border-radius: 8px;
+        background: rgb(255 203 87 / 0.12);
+      }
+
+      .lesson-code-wrap {
+        position: relative;
+        min-width: 0;
+      }
+
+      .lesson-code {
+        margin: 0;
+        padding: 0.9rem 3.35rem 0.9rem 0.9rem;
+        max-height: clamp(8rem, calc(var(--screen) * 0.22), 15rem);
+        overflow-x: auto;
+        overflow-y: auto;
+        scrollbar-gutter: stable;
+        scrollbar-width: thin;
+        scrollbar-color: rgb(255 255 255 / 0.22) transparent;
+        border-radius: 8px;
+        background: rgb(0 0 0 / 0.28);
+        color: #e8e8e8;
+        font-size: 0.78rem;
+        line-height: 1.5;
+      }
+
+      .lesson-code:hover,
+      .lesson-code:focus-within {
+        scrollbar-color: rgb(255 255 255 / 0.46) rgb(255 255 255 / 0.06);
+      }
+
+      .lesson-code::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+
+      .lesson-code::-webkit-scrollbar-track {
+        background: transparent;
+        border-radius: 999px;
+      }
+
+      .lesson-code:hover::-webkit-scrollbar-track,
+      .lesson-code:focus-within::-webkit-scrollbar-track {
+        background: rgb(255 255 255 / 0.06);
+      }
+
+      .lesson-code::-webkit-scrollbar-thumb {
+        border: 2px solid transparent;
+        border-radius: 999px;
+        background: rgb(255 255 255 / 0.22);
+        background-clip: padding-box;
+      }
+
+      .lesson-code:hover::-webkit-scrollbar-thumb,
+      .lesson-code:focus-within::-webkit-scrollbar-thumb {
+        background: rgb(255 255 255 / 0.46);
+        background-clip: padding-box;
+      }
+
+      .lesson-code::-webkit-scrollbar-thumb:hover {
+        background: rgb(255 255 255 / 0.62);
+        background-clip: padding-box;
+      }
+
+      .lesson-code::-webkit-scrollbar-corner {
+        background: transparent;
+      }
+
+      .lesson-copy {
+        position: absolute;
+        top: 0.55rem;
+        right: 0.55rem;
+        z-index: 1;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        min-height: 2rem;
+        max-width: calc(100% - 1.1rem);
+        padding: 0 0.55rem;
+        overflow: hidden;
+        border: 1px solid rgb(255 255 255 / 0.14);
+        border-radius: 6px;
+        background: rgb(24 24 24 / 0.84);
+        color: #d8d8d8;
+        font: inherit;
+        font-size: 0.72rem;
+        cursor: pointer;
+        backdrop-filter: blur(12px);
+        transition: background 160ms ease, border-color 160ms ease, color 160ms ease,
+          transform 160ms ease;
+      }
+
+      .lesson-copy:hover,
+      .lesson-copy:focus-visible {
+        border-color: rgb(255 255 255 / 0.3);
+        background: rgb(48 48 48 / 0.92);
+        color: #ffffff;
+      }
+
+      .lesson-copy:active {
+        transform: scale(0.96);
+      }
+
+      .lesson-copy.is-copied {
+        border-color: rgb(135 232 153 / 0.5);
+        color: #b9fbc0;
+      }
+
+      .lesson-copy svg {
+        width: 0.9rem;
+        height: 0.9rem;
+        flex: 0 0 auto;
+        stroke: currentColor;
+      }
+
+      .lesson-copy-label {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .lesson-navigation {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+      }
+
+      .lesson-nav-button {
+        width: 2.5rem;
+        height: 2.5rem;
+        display: grid;
+        place-items: center;
+        border: 1px solid rgb(255 255 255 / 0.14);
+        border-radius: 8px;
+        background: rgb(24 24 24 / 0.86);
+        color: #f4f4f4;
+        cursor: pointer;
+      }
+
+      .lesson-nav-button:hover,
+      .lesson-nav-button:focus-visible {
+        background: rgb(44 44 44 / 0.9);
+      }
+
+      .lesson-nav-button svg {
+        width: 1.1rem;
+        height: 1.1rem;
+        stroke: currentColor;
+      }
+
+      .lesson-dots {
+        display: flex;
+        gap: 0.45rem;
+      }
+
+      .lesson-dot {
+        width: 0.48rem;
+        height: 0.48rem;
+        border: 0;
+        border-radius: 999px;
+        background: rgb(255 255 255 / 0.28);
+        cursor: pointer;
+      }
+
+      .lesson-dot[aria-current="true"] {
+        background: #f4f4f4;
+      }
+
+      .control {
+        display: grid;
+        min-width: 0;
+        max-width: none;
+        gap: 0.5rem;
+      }
+
+      .control + .control {
+        margin-top: 0;
+      }
+
+      .control-label {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        font-size: 0.86rem;
+        line-height: 1.2;
+      }
+
+      .control-value {
+        color: #cfcfcf;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .checkbox-control {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-width: 0;
+        gap: 1rem;
+        color: #f4f4f4;
+        font-size: 0.86rem;
+        line-height: 1.2;
+      }
+
+      .checkbox-control input {
+        width: 1rem;
+        height: 1rem;
+        accent-color: #fff;
+      }
+
+      input[type="range"] {
+        width: 100%;
+        height: 1.25rem;
+        margin: 0;
+        appearance: none;
+        -webkit-appearance: none;
+        background: transparent;
+        cursor: pointer;
+      }
+
+      input[type="range"]::-webkit-slider-runnable-track {
+        height: 0.35rem;
+        border-radius: 999px;
+        background: linear-gradient(
+          to right,
+          #f4f4f5 0 var(--range-progress, 50%),
+          rgb(255 255 255 / 0.14) var(--range-progress, 50%) 100%
+        );
+      }
+
+      input[type="range"]::-moz-range-track {
+        height: 0.35rem;
+        border-radius: 999px;
+        background: rgb(255 255 255 / 0.14);
+      }
+
+      input[type="range"]::-moz-range-progress {
+        height: 0.35rem;
+        border-radius: 999px;
+        background: #f4f4f5;
+      }
+
+      input[type="range"]::-webkit-slider-thumb {
+        width: 1rem;
+        height: 1rem;
+        margin-top: -0.325rem;
+        appearance: none;
+        -webkit-appearance: none;
+        border: 2px solid #18181b;
+        border-radius: 999px;
+        background: #fafafa;
+        box-shadow: 0 0 0 1px rgb(255 255 255 / 0.6), 0 2px 5px rgb(0 0 0 / 0.3);
+      }
+
+      input[type="range"]::-moz-range-thumb {
+        width: 0.8rem;
+        height: 0.8rem;
+        border: 2px solid #18181b;
+        border-radius: 999px;
+        background: #fafafa;
+        box-shadow: 0 0 0 1px rgb(255 255 255 / 0.6), 0 2px 5px rgb(0 0 0 / 0.3);
+      }
+
+      input[type="range"]:focus-visible {
+        outline: none;
+      }
+
+      input[type="range"]:focus-visible::-webkit-slider-thumb {
+        box-shadow: 0 0 0 3px rgb(255 255 255 / 0.2), 0 0 0 5px rgb(255 255 255 / 0.12);
+      }
+
+      input[type="range"]:focus-visible::-moz-range-thumb {
+        box-shadow: 0 0 0 3px rgb(255 255 255 / 0.2), 0 0 0 5px rgb(255 255 255 / 0.12);
+      }
+
+      @keyframes shimmer {
+        0% {
+          background-position: var(--start-position) 0;
+        }
+
+        72%,
+        100% {
+          background-position: var(--end-position) 0;
+        }
+      }
+
+      @media (max-width: 760px) {
+        .top-actions {
+          top: 0.75rem;
+          right: 0.75rem;
+          left: 0.75rem;
+          gap: 0.35rem;
+          align-items: center;
+        }
+
+        .top-actions .icon-button,
+        .top-actions .profile-link {
+          flex: 0 0 2.5rem;
+          width: 2.5rem;
+          height: 2.5rem;
+        }
+
+        .icon-button.slide-toggle {
+          flex: 1 1 auto;
+          min-width: 0;
+          max-width: 13rem;
+          padding: 0 0.7rem;
+        }
+
+        .slide-toggle-text {
+          min-width: 0;
+          max-width: 8.5rem;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .demo-panel {
+          top: auto;
+          bottom: auto;
+          right: auto;
+          width: auto;
+        }
+
+        .demo-actions {
+          flex-direction: column;
+        }
+
+        .controls {
+          right: 1rem;
+          bottom: 1rem;
+          left: 1rem;
+          width: auto;
+          transform: none;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .demo-actions .has-tooltip::after {
+          top: auto;
+          bottom: calc(100% + 0.55rem);
+          left: 50%;
+          transform: translate(calc(-50% + var(--tooltip-shift, 0px)), 0.2rem);
+        }
+
+        .demo-actions .has-tooltip:hover::after,
+        .demo-actions .has-tooltip:focus-visible::after {
+          transform: translate(calc(-50% + var(--tooltip-shift, 0px)), 0);
+        }
+
+        .demo-actions .has-tooltip::after {
+          max-width: min(16rem, calc(100vw - 2rem));
+        }
+
+        .swiper-slide {
+          padding-bottom: 14rem;
+        }
+
+      }
+    </style>
+  </head>
+  <body>
+    <aside class="demo-panel" aria-label="Animation actions">
+      <div class="demo-actions">
+        <button class="icon-button restart has-tooltip" type="button" aria-label="Restart animation">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M3 12a9 9 0 1 0 3-6.7" stroke-width="2" stroke-linecap="round" />
+            <path d="M3 4v6h6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </button>
+
+        <button class="icon-button pause-toggle has-tooltip" type="button" aria-label="Pause animation">
+          <svg class="pause-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M8 5v14" stroke-width="2.4" stroke-linecap="round" />
+            <path d="M16 5v14" stroke-width="2.4" stroke-linecap="round" />
+          </svg>
+          <svg class="play-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M8 5v14l11-7-11-7Z" stroke-width="2" stroke-linejoin="round" />
+          </svg>
+        </button>
+
+        <button
+          class="icon-button visibility-toggle has-tooltip"
+          type="button"
+          aria-label="Demo visibility"
+          aria-expanded="false"
+          aria-controls="visibility-dropdown"
+        >
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" stroke-width="2" stroke-linejoin="round" />
+            <circle cx="12" cy="12" r="3" stroke-width="2" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="visibility-menu">
+
+        <div class="visibility-dropdown" id="visibility-dropdown" hidden>
+          <label class="visibility-option">
+            <span data-i18n="showVisibleRange">Visible text range</span>
+            <input id="show-visible-range" type="checkbox" checked />
+          </label>
+          <label class="visibility-option">
+            <span data-i18n="showSafeRange">Calculated safe range</span>
+            <input id="show-safe-range" type="checkbox" checked />
+          </label>
+          <label class="visibility-option">
+            <span data-i18n="showBackgroundSample">Full background highlight</span>
+            <input id="show-background-sample" type="checkbox" checked />
+          </label>
+        </div>
+      </div>
+
+      <form class="controls" aria-label="Shimmer controls">
+        <label class="control">
+          <span class="control-label">
+            <span data-i18n="speed">Speed</span>
+            <span class="control-value" id="speed-value">2.4s</span>
+          </span>
+          <input id="speed" type="range" min="0.8" max="12" step="0.1" value="2.4" />
+        </label>
+
+        <label class="control">
+          <span class="control-label">
+            <span data-i18n="width">Highlight width</span>
+            <span class="control-value" id="width-value">2ch</span>
+          </span>
+          <input id="width" type="range" min="0.5" max="6" step="0.1" value="2" />
+        </label>
+
+        <label class="control">
+          <span class="control-label">
+            <span data-i18n="angle">Angle</span>
+            <span class="control-value" id="angle-value">45deg</span>
+          </span>
+          <input id="angle" type="range" min="-90" max="90" step="1" value="45" />
+        </label>
+
+        <label class="control checkbox-control">
+          <span data-i18n="colorful">Color gradient</span>
+          <input id="colorful" type="checkbox" />
+        </label>
+      </form>
+    </aside>
+
+    <div class="top-actions">
+      <button
+        class="icon-button slide-toggle has-tooltip"
+        type="button"
+        aria-label="Switch to tutorial"
+      >
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5v-16Z" stroke-width="2" stroke-linejoin="round" />
+          <path d="M4 5.5A2.5 2.5 0 0 1 6.5 8H20" stroke-width="2" stroke-linecap="round" />
+          <path d="M8 12h7" stroke-width="2" stroke-linecap="round" />
+          <path d="M8 15h5" stroke-width="2" stroke-linecap="round" />
+        </svg>
+        <span class="slide-toggle-text" data-i18n="slideToTutorial">Tutorial</span>
+      </button>
+
+      <button class="icon-button language-toggle has-tooltip" type="button" aria-label="Switch to Chinese">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M4 5h10" stroke-width="2" stroke-linecap="round" />
+          <path d="M9 3v2" stroke-width="2" stroke-linecap="round" />
+          <path d="M6 9c1 2.4 3.3 4.4 6 5.4" stroke-width="2" stroke-linecap="round" />
+          <path d="M12 9c-.8 2.1-2.7 4.3-6 6" stroke-width="2" stroke-linecap="round" />
+          <path d="M15 21l3.5-8 3.5 8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+          <path d="M16.2 18h4.6" stroke-width="2" stroke-linecap="round" />
+        </svg>
+      </button>
+
+      <a
+        class="profile-link has-tooltip"
+        href="https://x.com/intent/follow?screen_name=aaronconlondev"
+        target="_blank"
+        rel="noreferrer noopener"
+        aria-label="Follow Aaron on X"
+      >
+        <img
+          src="https://pbs.twimg.com/profile_images/2069979979467890689/H3eMkyep_400x400.jpg"
+          alt=""
+        />
+      </a>
+    </div>
+
+    <div class="swiper screen-swiper">
+      <div class="swiper-wrapper">
+        <section class="swiper-slide">
+          <div class="demo">
+            <main class="stage" data-before="visible text area" data-after="background travels 400%">
+              <div
+                class="range-visual"
+                aria-hidden="true"
+                data-before="calculated safe range"
+                data-after="extra travel margin"
+              ></div>
+              <p class="shimmer" contenteditable="true" spellcheck="false">
+                CSS is awesome, right?
+              </p>
+            </main>
+
+            <aside class="background-sample" aria-label="Full background preview">
+              <p class="background-sample-title" data-i18n="backgroundSample">
+                Full background highlight
+              </p>
+              <div class="background-sample-strip" aria-hidden="true"></div>
+            </aside>
+          </div>
+        </section>
+
+        <section class="swiper-slide">
+          <article class="tutorial">
+            <header class="tutorial-header">
+              <h1 class="tutorial-title" data-i18n="tutorialTitle">
+                Build the shimmer text effect
+              </h1>
+              <p class="tutorial-subtitle" data-i18n="tutorialSubtitle">
+                The trick is to animate a large gradient background, then clip that
+                moving background into the text shape.
+              </p>
+            </header>
+
+            <div class="swiper lesson-swiper">
+              <div class="swiper-wrapper">
+                <section class="swiper-slide">
+                  <div class="lesson-card">
+                    <h3 data-i18n="lessonOneTitle">1. Make the highlight background</h3>
+                    <div class="lesson-visual">
+                      <div class="lesson-gradient" aria-hidden="true"></div>
+                    </div>
+                    <p data-i18n="lessonOneBody">
+                      Start with a gradient. The bright center is the highlight that will
+                      later pass through the letters.
+                    </p>
+                    <div class="lesson-code-wrap">
+                      <button class="lesson-copy" type="button" aria-label="Copy code">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                          <rect x="9" y="9" width="11" height="11" rx="2" stroke-width="1.8" />
+                          <path d="M15 9V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h3" stroke-width="1.8" />
+                        </svg>
+                        <span class="lesson-copy-label">Copy</span>
+                      </button>
+                      <pre class="lesson-code" data-lang="html"><code>&lt;!-- NEW in Step 1: add the text element. --&gt;
+&lt;p class="shimmer"&gt;CSS is awesome, right?&lt;/p&gt;
+
+&lt;style&gt;
+  /* NEW in Step 1: create a static highlight background. */
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      #8a8a8a,
+      #ffffff,
+      #8a8a8a
+    );
+  }
+&lt;/style&gt;</code></pre>
+                    </div>
+                  </div>
+                </section>
+
+                <section class="swiper-slide">
+                  <div class="lesson-card">
+                    <h3 data-i18n="lessonTwoTitle">2. Clip the background into text</h3>
+                    <div class="lesson-visual">
+                      <div class="lesson-text" aria-hidden="true">CSS is awesome, right?</div>
+                    </div>
+                    <p data-i18n="lessonTwoBody">
+                      Use transparent text plus background-clip:text. The text becomes a
+                      window that reveals the gradient behind it.
+                    </p>
+                    <div class="lesson-code-wrap">
+                      <button class="lesson-copy" type="button" aria-label="Copy code">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                          <rect x="9" y="9" width="11" height="11" rx="2" stroke-width="1.8" />
+                          <path d="M15 9V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h3" stroke-width="1.8" />
+                        </svg>
+                        <span class="lesson-copy-label">Copy</span>
+                      </button>
+                      <pre class="lesson-code" data-lang="css"><code>.shimmer {
+  /* NEW in Step 2: hide the original text fill. */
+  color: transparent;
+  background: linear-gradient(
+    90deg,
+    #8a8a8a,
+    #ffffff,
+    #8a8a8a
+  );
+  /* NEW in Step 2: reveal the background through the glyphs. */
+  background-clip: text;
+  -webkit-background-clip: text;
+}</code></pre>
+                    </div>
+                  </div>
+                </section>
+
+                <section class="swiper-slide">
+                  <div class="lesson-card">
+                    <h3 data-i18n="lessonThreeTitle">3. Give the gradient room to move</h3>
+                    <div class="lesson-visual">
+                      <div class="lesson-range" aria-hidden="true"></div>
+                    </div>
+                    <p data-i18n="lessonThreeBody">
+                      The background is wider than the text. The yellow area represents
+                      extra travel distance so the highlight can enter and leave cleanly.
+                    </p>
+                    <div class="lesson-code-wrap">
+                      <button class="lesson-copy" type="button" aria-label="Copy code">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                          <rect x="9" y="9" width="11" height="11" rx="2" stroke-width="1.8" />
+                          <path d="M15 9V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h3" stroke-width="1.8" />
+                        </svg>
+                        <span class="lesson-copy-label">Copy</span>
+                      </button>
+                      <pre class="lesson-code" data-lang="html"><code>&lt;style&gt;
+  /* NEW in Step 3: make the background wider than the text. */
+  .shimmer {
+    background-size: 400% 100%;
+  }
+&lt;/style&gt;
+
+&lt;script&gt;
+  const root = document.documentElement;
+  const text = document.querySelector(".shimmer");
+  const backgroundScale = 4;
+  const textWidth = text.getBoundingClientRect().width;
+  const textHeight = text.getBoundingClientRect().height;
+  const shineWidth = 48;
+  const angle = 45 * Math.PI / 180;
+
+  // NEW in Step 3: calculate how far the shine must travel outside the text.
+  const safeDistance =
+    (shineWidth + textHeight * Math.abs(Math.cos(angle)) / 2)
+    / Math.abs(Math.sin(angle));
+
+  // NEW in Step 3: use safeDistance to create safe start and end positions.
+  const backgroundWidth = textWidth * backgroundScale;
+  const travelWidth = backgroundWidth - textWidth;
+  const startPosition = (backgroundWidth / 2 + safeDistance) / travelWidth;
+  const endPosition =
+    (backgroundWidth / 2 - textWidth - safeDistance) / travelWidth;
+
+  root.style.setProperty("--start-position", `${startPosition * 100}%`);
+  root.style.setProperty("--end-position", `${endPosition * 100}%`);
+&lt;/script&gt;</code></pre>
+                    </div>
+                  </div>
+                </section>
+
+                <section class="swiper-slide">
+                  <div class="lesson-card">
+                    <h3 data-i18n="lessonFourTitle">4. Animate background-position</h3>
+                    <div class="lesson-visual">
+                      <div class="lesson-text lesson-text-moving" aria-hidden="true">CSS is awesome, right?</div>
+                    </div>
+                    <p data-i18n="lessonFourBody">
+                      The letters do not move. Only the oversized background moves behind
+                      the clipped text.
+                    </p>
+                    <div class="lesson-code-wrap">
+                      <button class="lesson-copy" type="button" aria-label="Copy code">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                          <rect x="9" y="9" width="11" height="11" rx="2" stroke-width="1.8" />
+                          <path d="M15 9V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h3" stroke-width="1.8" />
+                        </svg>
+                        <span class="lesson-copy-label">Copy</span>
+                      </button>
+                      <pre class="lesson-code" data-lang="html"><code>&lt;!-- NEW in Step 4: combine the pieces in one document. --&gt;
+&lt;main&gt;
+  &lt;p class="shimmer"&gt;CSS is awesome, right?&lt;/p&gt;
+&lt;/main&gt;
+
+&lt;style&gt;
+  /* NEW in Step 4: receive the safe positions calculated in Step 3. */
+  :root {
+    --start-position: 72%;
+    --end-position: 28%;
+  }
+
+  /* NEW in Step 4: use a diagonal, narrow highlight. */
+  .shimmer {
+    color: transparent;
+    background: linear-gradient(
+      45deg,
+      #8a8a8a calc(50% - 2ch),
+      #ffffff 50%,
+      #8a8a8a calc(50% + 2ch)
+    );
+    background-size: 400% 100%;
+    background-clip: text;
+    -webkit-background-clip: text;
+    /* NEW in Step 4: animate the background, not the letters. */
+    animation: shimmer 2.4s infinite ease-in-out;
+  }
+
+  /* NEW in Step 4: finish at the safe side with a smooth hold. */
+  @keyframes shimmer {
+    0% { background-position: var(--start-position) 0; }
+    72%, 100% { background-position: var(--end-position) 0; }
+  }
+&lt;/style&gt;</code></pre>
+                    </div>
+                  </div>
+                </section>
+              </div>
+            </div>
+
+            <nav class="lesson-navigation" aria-label="Lesson navigation">
+              <button class="lesson-nav-button lesson-prev" type="button" aria-label="Previous lesson">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="m15 18-6-6 6-6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </button>
+              <div class="lesson-dots" aria-hidden="true">
+                <button class="lesson-dot" type="button" aria-label="Lesson 1"></button>
+                <button class="lesson-dot" type="button" aria-label="Lesson 2"></button>
+                <button class="lesson-dot" type="button" aria-label="Lesson 3"></button>
+                <button class="lesson-dot" type="button" aria-label="Lesson 4"></button>
+              </div>
+              <button class="lesson-nav-button lesson-next" type="button" aria-label="Next lesson">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="m9 18 6-6-6-6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </button>
+            </nav>
+          </article>
+        </section>
+      </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Swiper/14.0.5/swiper-bundle.min.js"></script>
+    <script>
+      const root = document.documentElement;
+      const shimmer = document.querySelector(".shimmer");
+      const restart = document.querySelector(".restart");
+      const pauseToggle = document.querySelector(".pause-toggle");
+      const slideToggle = document.querySelector(".slide-toggle");
+      const slideToggleText = document.querySelector(".slide-toggle-text");
+      const languageToggle = document.querySelector(".language-toggle");
+      const visibilityToggle = document.querySelector(".visibility-toggle");
+      const visibilityDropdown = document.querySelector(".visibility-dropdown");
+      const stage = document.querySelector(".stage");
+      const rangeVisual = document.querySelector(".range-visual");
+      const storageKey = "shimmer-text-demo-settings";
+      const messages = {
+        en: {
+          angle: "Angle",
+          controls: "Shimmer controls",
+          languageLabel: "Switch to Chinese",
+          nextLanguage: "zh",
+          pause: "Pause animation",
+          restart: "Restart animation",
+          resume: "Resume animation",
+          speed: "Speed",
+          stageAfter: "background travels 400%",
+          stageBefore: "visible text area",
+          toolbar: "Animation actions",
+          width: "Highlight width",
+          colorful: "Color gradient",
+          backgroundSample: "Full background highlight",
+          rangeAfter: "extra travel margin",
+          rangeBefore: "calculated safe range",
+          visibility: "Demo visibility",
+          showBackgroundSample: "Full background highlight",
+          showSafeRange: "Calculated safe range",
+          showVisibleRange: "Visible text range",
+          slideToDemo: "Switch to demo",
+          slideToTutorial: "Switch to tutorial",
+          tutorialTitle: "Build the shimmer text effect",
+          tutorialSubtitle:
+            "The trick is to animate a large gradient background, then clip that moving background into the text shape.",
+          lessonOneTitle: "1. Make the highlight background",
+          lessonOneBody:
+            "Start with a static gradient. The bright center is only a background color band for now.",
+          lessonTwoTitle: "2. Clip the background into text",
+          lessonTwoBody:
+            "Use transparent text plus background-clip:text. The text becomes a window that reveals the gradient behind it.",
+          lessonThreeTitle: "3. Give the gradient room to move",
+          lessonThreeBody:
+            "The background is wider than the text. safeDistance calculates the extra travel margin, then drives the safe start and end positions.",
+          lessonFourTitle: "4. Animate background-position",
+          lessonFourBody:
+            "The letters do not move. Only the oversized background moves behind the clipped text.",
+          tooltipRestart: "Restart the shimmer animation from the beginning.",
+          tooltipPause: "Pause the shimmer animation.",
+          tooltipResume: "Resume the shimmer animation.",
+          tooltipVisibility: "Choose which teaching overlays are visible in the demo.",
+          tooltipSlideToDemo: "Open the interactive demo controls.",
+          tooltipSlideToTutorial: "Open the step-by-step tutorial.",
+          tooltipLanguage: "Switch the interface language.",
+          tooltipProfile: "Open Aaron's X follow page in a new tab.",
+          copy: "Copy",
+          copied: "Copied",
+          copyCode: "Copy code",
+          copiedCode: "Code copied",
+        },
+        zh: {
+          angle: "角度",
+          controls: "闪光控制器",
+          languageLabel: "切换到英文",
+          nextLanguage: "en",
+          pause: "暂停动画",
+          restart: "重新执行动画",
+          resume: "继续动画",
+          speed: "速度",
+          stageAfter: "背景移动范围 400%",
+          stageBefore: "文字可见范围",
+          toolbar: "动画操作",
+          width: "高亮宽度",
+          colorful: "彩色渐变",
+          backgroundSample: "完整背景高亮",
+          rangeAfter: "额外进出距离",
+          rangeBefore: "计算后的安全范围",
+          visibility: "示范元素显示",
+          showBackgroundSample: "完整背景高亮",
+          showSafeRange: "计算后的安全范围",
+          showVisibleRange: "文字可见范围",
+          slideToDemo: "切换到 Demo",
+          slideToTutorial: "切换到教程",
+          tutorialTitle: "一步步实现 shimmer text",
+          tutorialSubtitle:
+            "核心技巧是：让一个较大的渐变背景移动起来，再把这个移动背景裁剪进文字形状里。",
+          lessonOneTitle: "1. 先做高亮背景",
+          lessonOneBody:
+            "从一条静态渐变开始。此时中间的亮色区域只是背景色带，还没有开始移动。",
+          lessonTwoTitle: "2. 把背景裁剪进文字",
+          lessonTwoBody:
+            "让文字透明，再使用 background-clip:text。文字会变成一个窗口，露出背后的渐变。",
+          lessonThreeTitle: "3. 给渐变留出移动空间",
+          lessonThreeBody:
+            "背景要比文字更宽。safeDistance 会计算额外进出距离，再用于生成安全的起点和终点。",
+          lessonFourTitle: "4. 动画移动 background-position",
+          lessonFourBody:
+            "真正移动的不是文字，而是文字背后那张更大的背景。",
+          tooltipRestart: "从头重新执行 shimmer 动画。",
+          tooltipPause: "暂停 shimmer 动画。",
+          tooltipResume: "继续 shimmer 动画。",
+          tooltipVisibility: "选择 Demo 中显示哪些教学辅助元素。",
+          tooltipSlideToDemo: "打开可交互 Demo 控制区。",
+          tooltipSlideToTutorial: "打开一步步教程。",
+          tooltipLanguage: "切换界面语言。",
+          tooltipProfile: "在新标签打开 Aaron 的 X 关注页。",
+          copy: "复制",
+          copied: "已复制",
+          copyCode: "复制代码",
+          copiedCode: "代码已复制",
+        },
+      };
+      const colorful = document.querySelector("#colorful");
+      const backgroundSampleStrip = document.querySelector(".background-sample-strip");
+      const ogImage = document.querySelector('meta[property="og:image"]');
+      const twitterImage = document.querySelector('meta[name="twitter:image"]');
+      const ogImageAlt = document.querySelector('meta[property="og:image:alt"]');
+      const ogTitle = document.querySelector('meta[property="og:title"]');
+      const ogDescription = document.querySelector('meta[property="og:description"]');
+      const twitterTitle = document.querySelector('meta[name="twitter:title"]');
+      const twitterDescription = document.querySelector('meta[name="twitter:description"]');
+      const descriptionMeta = document.querySelector('meta[name="description"]');
+      const pageTitles = {
+        en: {
+          title: "Build a CSS Shimmer Text Effect",
+          description: "A visual guide to gradient text, clipping, and motion.",
+        },
+        zh: {
+          title: "一步步实现 Shimmer Text",
+          description: "渐变文字、裁剪与动画的可视化教程。",
+        },
+      };
+      const setSlideToggleLabel = (text) => {
+        slideToggleText.textContent = text;
+        window.updateSlideToggleMorph?.(text);
+      };
+      const updateCopyLabels = (text) => {
+        for (const label of document.querySelectorAll(".lesson-copy-label")) {
+          const morph = window.copyLabelMorphs?.get(label);
+          if (morph) {
+            morph.update(text);
+          } else {
+            label.textContent = text;
+          }
+        }
+      };
+      const applyTooltips = () => {
+        const copy = messages[document.body.dataset.language || "en"];
+        const isTutorial = document.body.dataset.slide === "tutorial";
+        const isPaused = document.body.dataset.paused === "true";
+
+        restart.dataset.tooltip = copy.tooltipRestart;
+        pauseToggle.dataset.tooltip = isPaused ? copy.tooltipResume : copy.tooltipPause;
+        visibilityToggle.dataset.tooltip = copy.tooltipVisibility;
+        slideToggle.dataset.tooltip = isTutorial
+          ? copy.tooltipSlideToDemo
+          : copy.tooltipSlideToTutorial;
+        languageToggle.dataset.tooltip = copy.tooltipLanguage;
+        document.querySelector(".profile-link").dataset.tooltip = copy.tooltipProfile;
+      };
+      const tooltipElements = document.querySelectorAll(".has-tooltip");
+      const positionTooltip = (element) => {
+        const rect = element.getBoundingClientRect();
+        const viewportPadding = 16;
+        const tooltipWidth = Math.min(256, window.innerWidth - viewportPadding * 2);
+        const center = rect.left + rect.width / 2;
+        const minCenter = viewportPadding + tooltipWidth / 2;
+        const maxCenter = window.innerWidth - viewportPadding - tooltipWidth / 2;
+        const safeCenter = Math.min(Math.max(center, minCenter), maxCenter);
+        element.style.setProperty("--tooltip-shift", `${safeCenter - center}px`);
+      };
+
+      for (const element of tooltipElements) {
+        element.addEventListener("pointerenter", () => positionTooltip(element));
+        element.addEventListener("focusin", () => positionTooltip(element));
+      }
+      window.addEventListener("resize", () => {
+        for (const element of tooltipElements) {
+          if (element.matches(":hover, :focus-visible, :focus-within")) {
+            positionTooltip(element);
+          }
+        }
+      });
+      const lessonPrev = document.querySelector(".lesson-prev");
+      const lessonNext = document.querySelector(".lesson-next");
+      const lessonDots = [...document.querySelectorAll(".lesson-dot")];
+      const createSlideController = (selector, options = {}) => {
+        if (window.Swiper) {
+          return new Swiper(selector, {
+            allowTouchMove: false,
+            autoHeight: false,
+            effect: "slide",
+            speed: 320,
+            ...options,
+          });
+        }
+
+        const container = document.querySelector(selector);
+        const wrapper = container.querySelector(":scope > .swiper-wrapper");
+        const slideCount = wrapper.children.length;
+        const listeners = new Set();
+
+        return {
+          activeIndex: 0,
+          on(event, listener) {
+            if (event === "slideChange") {
+              listeners.add(listener);
+            }
+          },
+          slideTo(index) {
+            this.activeIndex = Math.max(0, Math.min(index, slideCount - 1));
+            wrapper.style.transform = `translate3d(${-this.activeIndex * 100}%, 0, 0)`;
+            wrapper.style.transitionDuration = "320ms";
+            for (const listener of listeners) {
+              listener();
+            }
+          },
+        };
+      };
+      const shimmerSwiper = createSlideController(".screen-swiper");
+      const lessonSwiper = createSlideController(".lesson-swiper");
+      const updateSlideState = () => {
+        const copy = messages[document.body.dataset.language || "en"];
+        const isTutorial = shimmerSwiper.activeIndex === 1;
+        document.body.dataset.slide = isTutorial ? "tutorial" : "demo";
+        slideToggle.setAttribute(
+          "aria-label",
+          isTutorial ? copy.slideToDemo : copy.slideToTutorial
+        );
+        setSlideToggleLabel(isTutorial ? copy.slideToDemo : copy.slideToTutorial);
+        applyTooltips();
+        requestAnimationFrame(updateTravelRange);
+      };
+      const updateLessonState = () => {
+        for (const [index, dot] of lessonDots.entries()) {
+          dot.setAttribute("aria-current", String(index === lessonSwiper.activeIndex));
+        }
+      };
+      const visibilityControls = [
+        {
+          datasetKey: "showVisibleRange",
+          input: document.querySelector("#show-visible-range"),
+          settingsKey: "showVisibleRange",
+        },
+        {
+          datasetKey: "showSafeRange",
+          input: document.querySelector("#show-safe-range"),
+          settingsKey: "showSafeRange",
+        },
+        {
+          datasetKey: "showBackgroundSample",
+          input: document.querySelector("#show-background-sample"),
+          settingsKey: "showBackgroundSample",
+        },
+      ];
+      const controls = [
+        {
+          key: "speed",
+          input: document.querySelector("#speed"),
+          output: document.querySelector("#speed-value"),
+          property: "--speed",
+          unit: "s",
+        },
+        {
+          key: "width",
+          input: document.querySelector("#width"),
+          output: document.querySelector("#width-value"),
+          property: "--shine-width",
+          unit: "ch",
+        },
+        {
+          key: "angle",
+          input: document.querySelector("#angle"),
+          output: document.querySelector("#angle-value"),
+          property: "--angle",
+          unit: "deg",
+        },
+      ];
+      const loadSettings = () => {
+        try {
+          return JSON.parse(localStorage.getItem(storageKey)) || {};
+        } catch {
+          return {};
+        }
+      };
+      const saveSettings = () => {
+        const settings = {
+          language: document.body.dataset.language || "en",
+        };
+
+        for (const control of controls) {
+          settings[control.key] = control.input.value;
+        }
+
+        settings.colorful = colorful.checked;
+        for (const control of visibilityControls) {
+          settings[control.settingsKey] = control.input.checked;
+        }
+        localStorage.setItem(storageKey, JSON.stringify(settings));
+      };
+      const savedSettings = loadSettings();
+      let isInitializing = true;
+      const getShineWidthPx = () => {
+        const probe = document.createElement("span");
+        probe.style.cssText = `
+          position: absolute;
+          visibility: hidden;
+          width: var(--shine-width);
+          font: ${getComputedStyle(shimmer).font};
+        `;
+        document.body.append(probe);
+        const width = probe.getBoundingClientRect().width;
+        probe.remove();
+        return width;
+      };
+      const updateTravelRange = () => {
+        root.style.setProperty("--demo-font-scale", "1");
+
+        const calculate = () => {
+          const rect = shimmer.getBoundingClientRect();
+          const stageRect = stage.getBoundingClientRect();
+          const angle = Number(document.querySelector("#angle").value);
+          const radians = (angle * Math.PI) / 180;
+          const sin = Math.max(Math.abs(Math.sin(radians)), 0.12);
+          const cos = Math.abs(Math.cos(radians));
+          const shineWidth = getShineWidthPx();
+          const travelMargin = Math.ceil((shineWidth + (rect.height * cos) / 2) / sin);
+
+          return { rect, stageRect, shineWidth, travelMargin };
+        };
+
+        const availableWidth = Math.min(window.innerWidth, 1200) - 48;
+        let metrics = calculate();
+        let demoScale = 1;
+
+        for (let index = 0; index < 3; index += 1) {
+          const visualWidth = metrics.stageRect.width + metrics.travelMargin * 2;
+          const nextScale = Math.max(
+            0.14,
+            Math.min(1, demoScale * (availableWidth / visualWidth))
+          );
+
+          if (Math.abs(nextScale - demoScale) < 0.01) {
+            break;
+          }
+
+          demoScale = nextScale;
+          root.style.setProperty("--demo-font-scale", String(demoScale));
+          metrics = calculate();
+        }
+
+        const backgroundScale = 4;
+        const denominator = metrics.rect.width * (backgroundScale - 1);
+        const start =
+          ((metrics.rect.width * (backgroundScale / 2)) + metrics.travelMargin) /
+          denominator;
+        const end =
+          ((metrics.rect.width * ((backgroundScale / 2) - 1)) - metrics.travelMargin) /
+          denominator;
+
+        root.style.setProperty("--shine-width-px", `${metrics.shineWidth}px`);
+        root.style.setProperty("--travel-margin", `${metrics.travelMargin}px`);
+        root.style.setProperty("--start-position", `${start * 100}%`);
+        root.style.setProperty("--end-position", `${end * 100}%`);
+      };
+
+      for (const control of controls) {
+        if (savedSettings[control.key]) {
+          control.input.value = savedSettings[control.key];
+        }
+
+        const update = () => {
+          const value = `${control.input.value}${control.unit}`;
+          root.style.setProperty(control.property, value);
+          control.output.textContent = value;
+          const min = Number(control.input.min || 0);
+          const max = Number(control.input.max || 100);
+          const progress = ((Number(control.input.value) - min) / (max - min)) * 100;
+          control.input.style.setProperty("--range-progress", `${progress}%`);
+          if (!isInitializing) {
+            saveSettings();
+          }
+          requestAnimationFrame(updateTravelRange);
+        };
+
+        control.input.addEventListener("input", update);
+        update();
+      }
+
+      colorful.checked = savedSettings.colorful === true;
+      document.body.dataset.colorful = String(colorful.checked);
+      colorful.addEventListener("change", () => {
+        document.body.dataset.colorful = String(colorful.checked);
+        saveSettings();
+      });
+
+      const applyVisibility = () => {
+        for (const control of visibilityControls) {
+          document.body.dataset[control.datasetKey] = String(control.input.checked);
+        }
+        requestAnimationFrame(updateTravelRange);
+      };
+
+      for (const control of visibilityControls) {
+        control.input.checked = savedSettings[control.settingsKey] !== false;
+        control.input.addEventListener("change", () => {
+          applyVisibility();
+          saveSettings();
+        });
+      }
+      applyVisibility();
+
+      const applyLanguage = (language) => {
+        const copy = messages[language];
+        const pageCopy = pageTitles[language];
+        document.documentElement.lang = language === "zh" ? "zh-CN" : "en";
+        document.body.dataset.language = language;
+        document.title = pageCopy.title;
+        descriptionMeta.content = pageCopy.description;
+        ogTitle.content = pageCopy.title;
+        ogDescription.content = pageCopy.description;
+        twitterTitle.content = pageCopy.title;
+        twitterDescription.content = pageCopy.description;
+        ogImage.content = ogImage.dataset[`og${language === "zh" ? "Zh" : "En"}`];
+        twitterImage.content = twitterImage.dataset[`og${language === "zh" ? "Zh" : "En"}`];
+        ogImageAlt.content = pageCopy.title;
+        document.querySelector(".demo-panel").setAttribute("aria-label", copy.toolbar);
+        document.querySelector(".controls").setAttribute("aria-label", copy.controls);
+        restart.setAttribute("aria-label", copy.restart);
+        slideToggle.setAttribute(
+          "aria-label",
+          document.body.dataset.slide === "tutorial" ? copy.slideToDemo : copy.slideToTutorial
+        );
+        setSlideToggleLabel(
+          document.body.dataset.slide === "tutorial" ? copy.slideToDemo : copy.slideToTutorial
+        );
+        visibilityToggle.setAttribute("aria-label", copy.visibility);
+        pauseToggle.setAttribute(
+          "aria-label",
+          document.body.dataset.paused === "true" ? copy.resume : copy.pause
+        );
+        languageToggle.setAttribute("aria-label", copy.languageLabel);
+        for (const button of document.querySelectorAll(".lesson-copy")) {
+          button.setAttribute("aria-label", copy.copyCode);
+        }
+        updateCopyLabels(copy.copy);
+        stage.dataset.before = copy.stageBefore;
+        stage.dataset.after = copy.stageAfter;
+        rangeVisual.dataset.before = copy.rangeBefore;
+        rangeVisual.dataset.after = copy.rangeAfter;
+        applyTooltips();
+
+        for (const element of document.querySelectorAll("[data-i18n]")) {
+          element.textContent = copy[element.dataset.i18n];
+        }
+      };
+
+      // Prefer an explicit saved setting, then detect Chinese browser locales; every other locale uses English.
+      const browserLocale = navigator.language || navigator.userLanguage || "";
+      const browserLanguageMatch = browserLocale.match(/^(zh|en)(?:[-_]|$)/i);
+      const detectedLanguage = browserLanguageMatch?.[1].toLowerCase() === "zh" ? "zh" : "en";
+      const initialLanguage = savedSettings.language === "zh" || savedSettings.language === "en"
+        ? savedSettings.language
+        : detectedLanguage;
+      applyLanguage(initialLanguage);
+      isInitializing = false;
+      updateTravelRange();
+      window.addEventListener("resize", updateTravelRange);
+      shimmer.addEventListener("input", updateTravelRange);
+      shimmerSwiper.on("slideChange", updateSlideState);
+      lessonSwiper.on("slideChange", updateLessonState);
+      updateSlideState();
+      updateLessonState();
+
+      restart.addEventListener("click", () => {
+        document.body.dataset.restartCount = String(
+          Number(document.body.dataset.restartCount || 0) + 1
+        );
+        const copy = messages[document.body.dataset.language];
+        document.body.dataset.paused = "false";
+        pauseToggle.setAttribute("aria-label", copy.pause);
+        shimmer.style.animation = "none";
+        backgroundSampleStrip.style.animation = "none";
+        shimmer.style.animationPlayState = "running";
+        backgroundSampleStrip.style.animationPlayState = "running";
+        shimmer.offsetHeight;
+        backgroundSampleStrip.offsetHeight;
+        shimmer.style.animation = "";
+        backgroundSampleStrip.style.animation = "";
+        shimmer.style.animationPlayState = "running";
+        backgroundSampleStrip.style.animationPlayState = "running";
+        applyTooltips();
+      });
+
+      pauseToggle.addEventListener("click", () => {
+        const isPaused = document.body.dataset.paused === "true";
+        const nextPaused = !isPaused;
+        const copy = messages[document.body.dataset.language];
+        document.body.dataset.paused = String(nextPaused);
+        shimmer.style.animationPlayState = nextPaused ? "paused" : "running";
+        backgroundSampleStrip.style.animationPlayState = nextPaused ? "paused" : "running";
+        pauseToggle.setAttribute(
+          "aria-label",
+          nextPaused ? copy.resume : copy.pause
+        );
+        applyTooltips();
+      });
+
+      languageToggle.addEventListener("click", () => {
+        applyLanguage(messages[document.body.dataset.language].nextLanguage);
+        saveSettings();
+      });
+
+      slideToggle.addEventListener("click", () => {
+        shimmerSwiper.slideTo(shimmerSwiper.activeIndex === 0 ? 1 : 0);
+      });
+
+      lessonPrev.addEventListener("click", () => {
+        lessonSwiper.slideTo(lessonSwiper.activeIndex - 1);
+      });
+
+      lessonNext.addEventListener("click", () => {
+        lessonSwiper.slideTo(lessonSwiper.activeIndex + 1);
+      });
+
+      for (const [index, dot] of lessonDots.entries()) {
+        dot.addEventListener("click", () => {
+          lessonSwiper.slideTo(index);
+        });
+      }
+
+      const copyText = async (text) => {
+        try {
+          await navigator.clipboard.writeText(text);
+          return true;
+        } catch (error) {
+          const textarea = document.createElement("textarea");
+          textarea.value = text;
+          textarea.style.position = "fixed";
+          textarea.style.opacity = "0";
+          document.body.append(textarea);
+          textarea.select();
+          const copied = document.execCommand("copy");
+          textarea.remove();
+          return copied;
+        }
+      };
+
+      for (const button of document.querySelectorAll(".lesson-copy")) {
+        button.addEventListener("click", async () => {
+          const codeBlock = button.closest(".lesson-code-wrap")?.querySelector(".lesson-code");
+          if (!codeBlock) return;
+
+          const copied = await copyText(codeBlock.textContent.replace(/\n$/, ""));
+          if (!copied) return;
+
+          const copy = messages[document.body.dataset.language || "en"];
+          button.classList.add("is-copied");
+          button.setAttribute("aria-label", copy.copiedCode);
+          const label = button.querySelector(".lesson-copy-label");
+          const morph = window.copyLabelMorphs?.get(label);
+          if (morph) {
+            morph.update(copy.copied);
+          } else {
+            label.textContent = copy.copied;
+          }
+
+          clearTimeout(button.copyTimer);
+          button.copyTimer = setTimeout(() => {
+            button.classList.remove("is-copied");
+            button.setAttribute("aria-label", copy.copyCode);
+            if (morph) {
+              morph.update(copy.copy);
+            } else {
+              label.textContent = copy.copy;
+            }
+          }, 1400);
+        });
+      }
+
+      visibilityToggle.addEventListener("click", () => {
+        const isOpen = visibilityDropdown.hidden;
+        visibilityDropdown.hidden = !isOpen;
+        visibilityToggle.setAttribute("aria-expanded", String(isOpen));
+      });
+
+      document.addEventListener("click", (event) => {
+        if (!event.target.closest(".visibility-menu")) {
+          visibilityDropdown.hidden = true;
+          visibilityToggle.setAttribute("aria-expanded", "false");
+        }
+      });
+    </script>
+    <script type="module">
+      try {
+        const { TextMorph } = await import("https://esm.sh/torph");
+        const label = document.querySelector(".slide-toggle-text");
+        const morph = new TextMorph({
+          element: label,
+          duration: 420,
+          ease: "cubic-bezier(0.45, 0, 0.2, 1)",
+          locale: document.documentElement.lang || "en",
+        });
+
+        window.updateSlideToggleMorph = (text) => {
+          morph.update(text);
+        };
+        window.copyLabelMorphs = new Map();
+        for (const label of document.querySelectorAll(".lesson-copy-label")) {
+          window.copyLabelMorphs.set(label, new TextMorph({
+            element: label,
+            duration: 320,
+            ease: "cubic-bezier(0.45, 0, 0.2, 1)",
+            locale: document.documentElement.lang || "en",
+          }));
+        }
+        window.updateSlideToggleMorph(label.textContent);
+        updateCopyLabels(messages[document.body.dataset.language || "en"].copy);
+        document.body.dataset.torph = "ok";
+      } catch (error) {
+        document.body.dataset.torph = "failed";
+        console.warn("Torph label morph failed; using plain text updates.", error);
+      }
+    </script>
+    <script type="module">
+      document.body.dataset.shiki = "loading";
+
+      try {
+        const { codeToHtml } = await import("https://esm.sh/shiki@3.0.0");
+        const blocks = document.querySelectorAll(".lesson-code");
+
+        for (const block of blocks) {
+          const code = block.textContent;
+          const lang = block.dataset.lang || "html";
+          const highlighted = await codeToHtml(code, {
+            lang,
+            theme: "github-dark",
+          });
+          const container = document.createElement("div");
+          container.innerHTML = highlighted;
+          const pre = container.firstElementChild;
+
+          pre.classList.add("lesson-code", "lesson-code-highlighted");
+          pre.dataset.lang = lang;
+          block.replaceWith(pre);
+        }
+        document.body.dataset.shiki = "ok";
+      } catch (error) {
+        document.body.dataset.shiki = "failed";
+        console.warn("Shiki highlighting failed; using plain code blocks.", error);
+      }
+    </script>
+  </body>
+</html>
