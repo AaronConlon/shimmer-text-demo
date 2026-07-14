@@ -1978,14 +1978,18 @@
         });
       }
 
-      visibilityToggle.addEventListener("click", () => {
+      visibilityToggle.addEventListener("click", (event) => {
+        event.stopPropagation();
         const isOpen = visibilityDropdown.hidden;
         visibilityDropdown.hidden = !isOpen;
         visibilityToggle.setAttribute("aria-expanded", String(isOpen));
       });
 
       document.addEventListener("click", (event) => {
-        if (!event.target.closest(".visibility-menu")) {
+        if (
+          !event.target.closest(".visibility-menu") &&
+          !event.target.closest(".visibility-toggle")
+        ) {
           visibilityDropdown.hidden = true;
           visibilityToggle.setAttribute("aria-expanded", "false");
         }
